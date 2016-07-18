@@ -12,7 +12,14 @@
 
 @property (nonatomic, strong) NSArray <NSString *> *imageNames;
 
+@property (nonatomic, assign) BOOL                 pageControlUsed;
+@property (nonatomic, strong) NSMutableArray       *viewControllers;
+@property (nonatomic, strong) UIScrollView         *scrollView;
+@property (nonatomic, strong) UIPageControl        *pageControl;
+
 @end
+
+static CGFloat const kPageControlBottomSpace = 15.0f;
 
 @implementation ZKStickyHeaderView
 
@@ -29,37 +36,13 @@
 - (void)setup
 {
     _imageNames = @[@"iPhone1",@"iPhone2",@"iPhone3",@"iPhone4",@"iPhone5",@"iPhone6"];
-    
-    NSMutableArray *controllers = [[NSMutableArray alloc] init];
-    for (unsigned i = 0; i < [_imageNames count]; i++) {
-        [controllers addObject:[NSNull null]];
-    }
-    _viewControllers = controllers;
-    
-    _scrollView = [[UIScrollView alloc] initWithFrame:self.bounds];
-    _scrollView.contentSize = CGSizeMake(_scrollView.frame.size.width * _imageNames.count, _scrollView.frame.size.height);
-    [_scrollView setBackgroundColor:[UIColor whiteColor]];
-    _scrollView.pagingEnabled = YES;
-    _scrollView.showsHorizontalScrollIndicator = NO;
-    _scrollView.showsVerticalScrollIndicator = NO;
-    _scrollView.scrollsToTop = NO;
-    _scrollView.autoresizesSubviews = YES;
-    _scrollView.delegate = self;
-    [self addSubview:_scrollView];
-    
     _isExpanded = NO;
     
-    UITapGestureRecognizer *singleFingerTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(didTap)];
-    singleFingerTap.numberOfTapsRequired = 1;
-    [_scrollView addGestureRecognizer:singleFingerTap];
+    [self addSubview:self.scrollView];
+    if ([_imageNames count] > 1) [self addSubview:self.pageControl];
     
-    _pageControl = [[UIPageControl alloc]initWithFrame: CGRectMake(0, self.frame.size.height-10, self.frame.size.width, 10)];
-    _pageControl.numberOfPages = [_imageNames count];
-    [_pageControl setBackgroundColor:[UIColor clearColor]];
-    [_pageControl setUserInteractionEnabled:NO];
-    [_pageControl setPageIndicatorTintColor:[UIColor lightGrayColor]];
-    [_pageControl setCurrentPageIndicatorTintColor:[UIColor whiteColor]];
-    if ([_imageNames count] > 1) [self addSubview:_pageControl];
+    [_scrollView addGestureRecognizer:[[UITapGestureRecognizer alloc]
+                                       initWithTarget:self action:@selector(handleTap)]];
     
     [self loadScrollViewWithPage:0];
     [self loadScrollViewWithPage:1];
@@ -71,28 +54,27 @@
     self.frame = rect;
     _scrollView.frame = rect;
     
-    float y = self.frame.size.height + _scrollView.frame.origin.y - 10.0f;
-    _pageControl.frame = CGRectMake(0.0f, y, self.frame.size.width, 10.0f);
+    float y = self.frame.size.height + _scrollView.frame.origin.y - kPageControlBottomSpace;
+    _pageControl.frame = CGRectMake(0.0f, y, self.frame.size.width, kPageControlBottomSpace);
 }
 
 #pragma mark - UITapGestureRecognizer
-- (void)didTap
+- (void)handleTap
 {
-    if ([_delegate respondsToSelector:@selector(toggleHeaderViewFrame)])
+    if ([_delegate respondsToSelector:@selector(stickyHeaderViewDidTap:)])
     {
-        [_delegate performSelector:@selector(toggleHeaderViewFrame)];
+        [_delegate performSelector:@selector(stickyHeaderViewDidTap:)];
     }
 }
 
 #pragma mark - Load ScrollView Pages
-- (void)loadScrollViewWithPage:(int)page {
+- (void)loadScrollViewWithPage:(NSInteger)page {
     
-    if (page < 0) return;
-    if (page >= [_imageNames count]) return;
+    if (page < 0 || page >= _imageNames.count) {
+        return;
+    }
     
-    
-    // replace the placeholder if necessary
-    UIImageView *controller = [_viewControllers objectAtIndex:page];
+    UIImageView *controller = self.viewControllers[page];
     
     if ((NSNull *)controller == [NSNull null]) {
         
@@ -114,17 +96,17 @@
         
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
             
-            for (int i = 0; i < [_imageNames count]; i++) {
+            for (int i = 0; i < _imageNames.count; i++) {
                 
-                if (page == i) { //set up each page
+                if (page == i) {
                     
                     [_viewControllers replaceObjectAtIndex:page withObject:controller];
                     
                     dispatch_async(dispatch_get_main_queue(), ^{
                         
-                        [controller setImage:[UIImage imageNamed:[NSString stringWithFormat:@"Resources.bundle/%@.png",[_imageNames objectAtIndex:i]]]];
-                
+                        [controller setImage:[UIImage imageNamed:[NSString stringWithFormat:@"Resources.bundle/%@.png",_imageNames[i]]]];
                         [spinner removeFromSuperview];
+                        
                         return;
                     });
                 }
@@ -146,21 +128,64 @@
     [self loadScrollViewWithPage:page - 1];
     [self loadScrollViewWithPage:page];
     [self loadScrollViewWithPage:page + 1];
-    
-    // A possible optimization would be to unload the views+controllers which are no longer visible
 }
-// At the begin of scroll dragging, reset the boolean used when scrolls originate from the UIPageControl
+
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
     _pageControlUsed = YES;
 }
 
-// At the end of scroll animation, reset the boolean used when scrolls originate from the UIPageControl
+
 - (void)scrollViewWillEndDragging:(UIScrollView *)scrollView
                      withVelocity:(CGPoint)velocity
               targetContentOffset:(inout CGPoint *)targetContentOffset
 {
     _pageControlUsed = NO;
+}
+
+#pragma mark - Lazy Loading
+- (NSMutableArray *)viewControllers
+{
+    if (!_viewControllers) {
+        NSMutableArray *controllers = [[NSMutableArray alloc] init];
+        for (unsigned i = 0; i < [_imageNames count]; i++) {
+            [controllers addObject:[NSNull null]];
+        }
+        _viewControllers = controllers;
+    }
+    return _viewControllers;
+}
+
+- (UIScrollView *)scrollView
+{
+    if (!_scrollView) {
+        _scrollView = [[UIScrollView alloc] initWithFrame:self.bounds];
+        _scrollView.contentSize = CGSizeMake(_scrollView.frame.size.width * _imageNames.count, _scrollView.frame.size.height);
+        [_scrollView setBackgroundColor:[UIColor whiteColor]];
+        _scrollView.pagingEnabled = YES;
+        _scrollView.showsHorizontalScrollIndicator = NO;
+        _scrollView.showsVerticalScrollIndicator = NO;
+        _scrollView.scrollsToTop = NO;
+        _scrollView.autoresizesSubviews = YES;
+        _scrollView.delegate = self;
+    }
+    return _scrollView;
+}
+
+- (UIPageControl *)pageControl
+{
+    if (!_pageControl) {
+        _pageControl = [[UIPageControl alloc]initWithFrame: CGRectMake(0,
+                                                                       self.frame.size.height-kPageControlBottomSpace,
+                                                                       self.frame.size.width,
+                                                                       kPageControlBottomSpace)];
+        _pageControl.numberOfPages = [_imageNames count];
+        [_pageControl setBackgroundColor:[UIColor clearColor]];
+        [_pageControl setUserInteractionEnabled:NO];
+        [_pageControl setPageIndicatorTintColor:[UIColor lightGrayColor]];
+        [_pageControl setCurrentPageIndicatorTintColor:[UIColor whiteColor]];
+    }
+    return _pageControl;
 }
 
 @end

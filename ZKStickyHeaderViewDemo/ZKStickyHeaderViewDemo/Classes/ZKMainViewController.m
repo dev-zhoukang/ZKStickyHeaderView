@@ -57,14 +57,11 @@
     float delta = 0.0f;
     CGRect rect = HEADER_INIT_FRAME;
     
-    // Only allow the header to stretch if pulled down
-    if (_tableView.contentOffset.y < 0.0f)
-    {
-        // Scroll down
+    if (_tableView.contentOffset.y < 0.0f) {
         delta = fabs(MIN(0.0f, _tableView.contentOffset.y));
     }
     
-    rect.origin.y -= delta;
+    rect.origin.y    -= delta;
     rect.size.height += delta;
     
     [_headerView updateFrame:rect];
@@ -72,7 +69,7 @@
 }
 
 #pragma mark *** <ZKStickyHeaderViewDelegate> ***
-- (void)toggleHeaderViewFrame
+- (void)stickyHeaderViewDidTap:(ZKStickyHeaderView *)stickyView
 {
     [UIView animateWithDuration:0.35
                      animations:^{
