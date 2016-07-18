@@ -1,2 +1,2 @@
 # ZKStickyHeaderView
-仿微博个人页tableHeader粘连效果
+微博个人页tableHeader粘连效果
