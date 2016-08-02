@@ -26,8 +26,19 @@
 
 - (void)createHeaderView
 {
-    NSArray *imageNames = @[@"iPhone1",@"iPhone2",@"iPhone3",@"iPhone4",@"iPhone5",@"iPhone6"];
-    _headerView = [ZKStickyHeaderView headerViewWithImageNames:imageNames initFrame:HEADER_INIT_FRAME];
+    NSArray *imageUrls = @[
+                           @"http://ww3.sinaimg.cn/large/8e88b0c1gw1e9lpr0nly5j20pf0gygo6.jpg",
+                           @"http://ww4.sinaimg.cn/large/8e88b0c1gw1e9lpr1d0vyj20pf0gytcj.jpg",
+                           @"http://ww3.sinaimg.cn/large/8e88b0c1gw1e9lpr1xydcj20gy0o9q6s.jpg",
+                           @"http://ww2.sinaimg.cn/large/8e88b0c1gw1e9lpr2n1jjj20gy0o9tcc.jpg",
+                           @"http://ww2.sinaimg.cn/large/8e88b0c1gw1e9lpr39ht9j20gy0o6q74.jpg",
+                           @"http://ww3.sinaimg.cn/large/8e88b0c1gw1e9lpr3xvtlj20gy0obadv.jpg",
+                           @"http://ww3.sinaimg.cn/large/8e88b0c1gw1e9lpr57tn9j20gy0obn0f.jpg",
+                           @"http://images.himoca.com/dynamic/db/77/13da5b006642a5a95c512cb528058dff.jpg",
+                           @"http://images.himoca.com/dynamic/db/77/29b553b49130570391d9288ef09dc39b.jpg"
+                           ];
+    
+    _headerView = [ZKStickyHeaderView headerViewWithImageNames:imageUrls initFrame:HEADER_INIT_FRAME];
     _headerView.delegate = self;
     [_tableView setTableHeaderView:_headerView];
 }

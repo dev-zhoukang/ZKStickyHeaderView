@@ -7,6 +7,8 @@
 //
 
 #import "ZKStickyHeaderView.h"
+#import "UIImageView+WebCache.h"
+#import "MJPhotoBrowser.h"
 
 @interface ZKStickyHeaderView() <UIScrollViewDelegate>
 
@@ -16,6 +18,7 @@
 @property (nonatomic, strong) NSMutableArray       *viewControllers;
 @property (nonatomic, strong) UIScrollView         *scrollView;
 @property (nonatomic, strong) UIPageControl        *pageControl;
+@property (nonatomic, strong) UIView               *contentView;
 
 @end
 
@@ -45,16 +48,22 @@ static CGFloat const kPageControlBottomSpace = 15.0f;
 {
     _imageNames = imageNames;
     
-    [self addSubview:self.scrollView];
+    
+    _contentView = [[UIView alloc] init];
+    _contentView.frame = (CGRect){CGPointZero, self.scrollView.contentSize};
+    [self.scrollView addSubview:_contentView];
+    
     if ([_imageNames count] > 1) {
         [self addSubview:self.pageControl];
     }
     
-    [_scrollView addGestureRecognizer:[[UITapGestureRecognizer alloc]
-                                       initWithTarget:self action:@selector(handleTap)]];
+//    [self loadScrollViewWithPage:0];
+//    [self loadScrollViewWithPage:1];
     
-    [self loadScrollViewWithPage:0];
-    [self loadScrollViewWithPage:1];
+    __weak typeof(self) weakSelf = self;
+    [_imageNames enumerateObjectsUsingBlock:^(NSString *string, NSUInteger idx, BOOL * _Nonnull stop) {
+        [weakSelf loadScrollViewWithPage:idx];
+    }];
 }
 
 #pragma mark - Private Mehods
@@ -101,13 +110,39 @@ static CGFloat const kPageControlBottomSpace = 15.0f;
 }
 
 #pragma mark - UITapGestureRecognizer
-- (void)handleTap
+- (void)handleTap:(UITapGestureRecognizer *)tap
 {
     if ([_delegate respondsToSelector:@selector(stickyHeaderViewDidTap:)]) {
         [_delegate stickyHeaderViewDidTap:self];
     }
     
-    [self expand];
+    [self showPhotoBrowserWithTap:tap];
+    
+//    [self expand];
+}
+
+- (void)showPhotoBrowserWithTap:(UITapGestureRecognizer *)tap
+{
+    NSInteger count = _imageNames.count;
+    // 1.封装图片数据
+    NSMutableArray <MJPhoto *> *photos = [NSMutableArray arrayWithCapacity:count];
+    for (int i = 0; i<count; i++) {
+        // 替换为大尺寸图片 中:bmiddle  大:large
+        NSString *url = _imageNames[i];
+        MJPhoto *photo = [[MJPhoto alloc] init];
+        photo.url = [NSURL URLWithString:url]; // 图片路径
+        
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"class == %@", [UIImageView class]];
+        NSArray *tempArray = [[NSArray alloc] init];
+        tempArray = [_contentView.subviews filteredArrayUsingPredicate:predicate];
+        
+        photo.srcImageView = tempArray[i]; // 来源于哪个UIImageView
+        [photos addObject:photo];
+    }
+    
+    // 2.显示相册
+    MJPhotoBrowser *browser = [[MJPhotoBrowser alloc] initWithPhotos:photos currentPhotoIndex:tap.view.tag];
+    [browser show];
 }
 
 - (void)expand
@@ -137,6 +172,7 @@ static CGFloat const kPageControlBottomSpace = 15.0f;
     if ((NSNull *)controller == [NSNull null]) {
         
         controller = [[UIImageView alloc] init];
+        controller.userInteractionEnabled = YES;
         CGRect frame = _scrollView.frame;
         frame.origin.x = frame.size.width * page;
         frame.origin.y = 0;
@@ -144,7 +180,11 @@ static CGFloat const kPageControlBottomSpace = 15.0f;
         [controller setContentMode:UIViewContentModeScaleAspectFill];
         controller.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         [controller.layer setMasksToBounds:YES];
-        [_scrollView addSubview:controller];
+        [_contentView addSubview:controller];
+        
+        controller.tag = page;
+        [controller addGestureRecognizer:[[UITapGestureRecognizer alloc]
+                                            initWithTarget:self action:@selector(handleTap:)]];
         
         UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
         [spinner setCenter:CGPointMake(controller.center.x, controller.center.y)];
@@ -162,7 +202,9 @@ static CGFloat const kPageControlBottomSpace = 15.0f;
                     
                     dispatch_async(dispatch_get_main_queue(), ^{
                         
-                        [controller setImage:[UIImage imageNamed:[NSString stringWithFormat:@"Resources.bundle/%@.png",_imageNames[i]]]];
+//                        [controller setImage:[UIImage imageNamed:[NSString stringWithFormat:@"Resources.bundle/%@.png",_imageNames[i]]]];
+                        [controller sd_setImageWithURL:[NSURL URLWithString:_imageNames[i]] placeholderImage:nil];
+                        
                         [spinner removeFromSuperview];
                         
                         return;
@@ -218,6 +260,7 @@ static CGFloat const kPageControlBottomSpace = 15.0f;
 {
     if (!_scrollView) {
         _scrollView = [[UIScrollView alloc] initWithFrame:self.bounds];
+        [self addSubview:_scrollView];
         _scrollView.contentSize = CGSizeMake(_scrollView.frame.size.width * _imageNames.count, _scrollView.frame.size.height);
         [_scrollView setBackgroundColor:[UIColor whiteColor]];
         _scrollView.pagingEnabled = YES;
