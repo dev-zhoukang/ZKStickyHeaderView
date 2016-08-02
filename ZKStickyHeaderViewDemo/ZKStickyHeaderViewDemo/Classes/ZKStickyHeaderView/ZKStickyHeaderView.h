@@ -9,6 +9,9 @@
 #import <UIKit/UIKit.h>
 @class ZKStickyHeaderView;
 
+#define HEADER_HEIGHT       200.0f
+#define HEADER_INIT_FRAME   CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, HEADER_HEIGHT)
+
 @protocol ZKStickyHeaderViewDelegate <NSObject>
 @optional
 - (void)stickyHeaderViewDidTap:(ZKStickyHeaderView *)stickyView;
@@ -19,6 +22,12 @@
 @property (nonatomic, weak) id <ZKStickyHeaderViewDelegate> delegate;
 @property (nonatomic, assign) BOOL isExpanded;
 
-- (void)updateFrame:(CGRect)rect;
++ (instancetype)headerViewWithImageNames:(NSArray <NSString *> *) imageNames initFrame:(CGRect)initFrame;
+
+/** 在`scrollViewDidScroll`中实现 */
+- (void)updateFrameWhenScroll;
+
+/** 在`点击事件`中实现 */
+- (void)updateFrameWhenTap;
 
 @end

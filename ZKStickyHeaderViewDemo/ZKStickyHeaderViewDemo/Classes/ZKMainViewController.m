@@ -9,9 +9,6 @@
 #import "ZKMainViewController.h"
 #import "ZKStickyHeaderView.h"
 
-#define HEADER_HEIGHT 200.0f
-#define HEADER_INIT_FRAME CGRectMake(0, 0, self.view.frame.size.width, HEADER_HEIGHT)
-
 @interface ZKMainViewController () <UITableViewDataSource, UITableViewDelegate, ZKStickyHeaderViewDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
@@ -24,13 +21,13 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
     [self createHeaderView];
 }
 
 - (void)createHeaderView
 {
-    _headerView = [[ZKStickyHeaderView alloc]initWithFrame:HEADER_INIT_FRAME];
+    NSArray *imageNames = @[@"iPhone1",@"iPhone2",@"iPhone3",@"iPhone4",@"iPhone5",@"iPhone6"];
+    _headerView = [ZKStickyHeaderView headerViewWithImageNames:imageNames initFrame:HEADER_INIT_FRAME];
     _headerView.delegate = self;
     [_tableView setTableHeaderView:_headerView];
 }
@@ -54,35 +51,7 @@
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
-    float delta = 0.0f;
-    CGRect rect = HEADER_INIT_FRAME;
-    
-    if (_tableView.contentOffset.y < 0.0f) {
-        delta = fabs(MIN(0.0f, _tableView.contentOffset.y));
-    }
-    
-    rect.origin.y    -= delta;
-    rect.size.height += delta;
-    
-    [_headerView updateFrame:rect];
-    
-}
-
-#pragma mark *** <ZKStickyHeaderViewDelegate> ***
-- (void)stickyHeaderViewDidTap:(ZKStickyHeaderView *)stickyView
-{
-    [UIView animateWithDuration:0.35
-                     animations:^{
-                         
-                         _headerView.isExpanded = !_headerView.isExpanded;
-                         [_headerView updateFrame:_headerView.isExpanded ? [self.view frame] : HEADER_INIT_FRAME];
-                         
-                     } completion:^(BOOL finished){
-                         
-                         [_tableView setScrollEnabled:!_headerView.isExpanded];
-                         
-                     }];
-    
+    [_headerView updateFrameWhenScroll];
 }
 
 @end

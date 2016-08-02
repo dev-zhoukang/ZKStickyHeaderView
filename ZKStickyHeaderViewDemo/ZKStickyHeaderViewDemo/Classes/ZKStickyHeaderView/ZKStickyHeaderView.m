@@ -24,22 +24,31 @@ static CGFloat const kPageControlBottomSpace = 15.0f;
 @implementation ZKStickyHeaderView
 
 #pragma mark - Init
-- (id)initWithFrame:(CGRect)frame
+- (instancetype)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
     if (self) {
-        [self setup];
+        _isExpanded = NO;
     }
     return self;
 }
 
-- (void)setup
++ (instancetype)headerViewWithImageNames:(NSArray<NSString *> *)imageNames initFrame:(CGRect)initFrame
 {
-    _imageNames = @[@"iPhone1",@"iPhone2",@"iPhone3",@"iPhone4",@"iPhone5",@"iPhone6"];
-    _isExpanded = NO;
+    ZKStickyHeaderView *headerView = [[ZKStickyHeaderView alloc] initWithFrame:initFrame];
+    headerView.imageNames = imageNames;
+    return headerView;
+}
+
+#pragma mark - Setter
+- (void)setImageNames:(NSArray<NSString *> *)imageNames
+{
+    _imageNames = imageNames;
     
     [self addSubview:self.scrollView];
-    if ([_imageNames count] > 1) [self addSubview:self.pageControl];
+    if ([_imageNames count] > 1) {
+        [self addSubview:self.pageControl];
+    }
     
     [_scrollView addGestureRecognizer:[[UITapGestureRecognizer alloc]
                                        initWithTarget:self action:@selector(handleTap)]];
@@ -58,13 +67,62 @@ static CGFloat const kPageControlBottomSpace = 15.0f;
     _pageControl.frame = CGRectMake(0.0f, y, self.frame.size.width, kPageControlBottomSpace);
 }
 
+- (void)updateFrameWhenTap
+{
+    [self updateFrame:self.isExpanded ? [UIScreen mainScreen].bounds : HEADER_INIT_FRAME];
+}
+
+- (void)updateFrameWhenScroll
+{
+    float delta = 0.0f;
+    CGRect rect = HEADER_INIT_FRAME;
+    
+    UITableView *tableView = [self superTableView];
+    
+    if (tableView.contentOffset.y < 0.0f) {
+        delta = fabs(MIN(0.0f, tableView.contentOffset.y));
+    }
+    
+    rect.origin.y    -= delta;
+    rect.size.height += delta;
+    
+    [self updateFrame:rect];
+}
+
+- (UITableView *)superTableView
+{
+   id view = [self superview];
+
+    while (view && ![view isKindOfClass:[UITableView class]]) {
+        view = [view superview];
+    }
+    
+    return (UITableView *)view;
+}
+
 #pragma mark - UITapGestureRecognizer
 - (void)handleTap
 {
-    if ([_delegate respondsToSelector:@selector(stickyHeaderViewDidTap:)])
-    {
-        [_delegate performSelector:@selector(stickyHeaderViewDidTap:)];
+    if ([_delegate respondsToSelector:@selector(stickyHeaderViewDidTap:)]) {
+        [_delegate stickyHeaderViewDidTap:self];
     }
+    
+    [self expand];
+}
+
+- (void)expand
+{
+    [UIView animateWithDuration:0.35
+                     animations:^{
+                         
+                         self.isExpanded = !self.isExpanded;
+                         [self updateFrameWhenTap];
+                         
+                     } completion:^(BOOL finished){
+                         
+                         [[self superTableView] setScrollEnabled:!self.isExpanded];
+                         
+                     }];
 }
 
 #pragma mark - Load ScrollView Pages
