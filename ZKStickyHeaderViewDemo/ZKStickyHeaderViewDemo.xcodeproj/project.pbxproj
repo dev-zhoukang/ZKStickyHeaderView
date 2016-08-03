@@ -300,7 +300,6 @@
 				5879619C1D50882800DBDBDE /* SDWebImageManager+MJ.m */,
 				587961801D50878C00DBDBDE /* MJPhoto.h */,
 				587961811D50878C00DBDBDE /* MJPhoto.m */,
-				587961821D50878C00DBDBDE /* MJPhotoBrowser.bundle */,
 				587961831D50878C00DBDBDE /* MJPhotoBrowser.h */,
 				587961841D50878C00DBDBDE /* MJPhotoBrowser.m */,
 				587961851D50878C00DBDBDE /* MJPhotoLoadingView.h */,
@@ -313,6 +312,7 @@
 				5879618C1D50878C00DBDBDE /* MJPhotoView.m */,
 				5879618D1D50878C00DBDBDE /* UIImageView+MJWebCache.h */,
 				5879618E1D50878C00DBDBDE /* UIImageView+MJWebCache.m */,
+				587961821D50878C00DBDBDE /* MJPhotoBrowser.bundle */,
 			);
 			path = MJPhotoBrowser;
 			sourceTree = "<group>";
@@ -393,6 +393,7 @@
 				TargetAttributes = {
 					5800E1481D3C7B8300D1F4D2 = {
 						CreatedOnToolsVersion = 7.3.1;
+						DevelopmentTeam = TE2958KSXV;
 					};
 					5800E1611D3C7B8300D1F4D2 = {
 						CreatedOnToolsVersion = 7.3.1;
@@ -619,11 +620,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = ZKStickyHeaderViewDemo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.zk520it.ZKStickyHeaderViewDemo;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zk520it.ZKStickyHeaderView;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Debug;
 		};
@@ -631,11 +635,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = ZKStickyHeaderViewDemo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.zk520it.ZKStickyHeaderViewDemo;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zk520it.ZKStickyHeaderView;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Release;
 		};

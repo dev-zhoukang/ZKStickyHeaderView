@@ -16,7 +16,6 @@
 @property (nonatomic, assign) NSInteger   index;         //!< 索引
 @property (nonatomic, assign) BOOL        save;          //!< 是否已经保存到相册
 
-@property (nonatomic, strong, readonly) UIImage *capture;
 @property (nonatomic, strong, readonly) UIImage *placeholder;
 
 @end

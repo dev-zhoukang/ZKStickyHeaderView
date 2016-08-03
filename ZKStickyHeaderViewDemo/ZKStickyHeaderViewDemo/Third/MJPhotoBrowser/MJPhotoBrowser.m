@@ -35,6 +35,7 @@ static CGFloat const kPhotoViewTagOffset = 1000.f;
 #pragma mark - Lifecycle
 - (void)loadView
 {
+    [super loadView];
     _statusBarHiddenInited = [UIApplication sharedApplication].isStatusBarHidden;
     [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
     
@@ -198,6 +199,7 @@ static CGFloat const kPhotoViewTagOffset = 1000.f;
     MJPhotoView *photoView = [self dequeueReusablePhotoView];
     if (!photoView) { // 添加新的图片view
         photoView = [[MJPhotoView alloc] init];
+        NSLog(@"photoView地址:%p", photoView);
         photoView.photoViewDelegate = self;
     }
     
@@ -263,6 +265,13 @@ static CGFloat const kPhotoViewTagOffset = 1000.f;
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
 	[self showPhotos];
     [self updateTollbarState];
+}
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+{
+    if ([self.delegate respondsToSelector:@selector(photoBrowser:didChangedToPageAtIndex:)]) {
+        [_delegate photoBrowser:self didChangedToPageAtIndex:_currentPhotoIndex];
+    }
 }
 
 @end

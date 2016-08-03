@@ -10,7 +10,7 @@
 #import "UIImageView+WebCache.h"
 #import "MJPhotoBrowser.h"
 
-@interface ZKStickyHeaderView() <UIScrollViewDelegate>
+@interface ZKStickyHeaderView() <UIScrollViewDelegate, MJPhotoBrowserDelegate>
 
 @property (nonatomic, strong) NSArray <NSString *> *imageNames;
 
@@ -18,7 +18,6 @@
 @property (nonatomic, strong) NSMutableArray       *viewControllers;
 @property (nonatomic, strong) UIScrollView         *scrollView;
 @property (nonatomic, strong) UIPageControl        *pageControl;
-@property (nonatomic, strong) UIView               *contentView;
 
 @end
 
@@ -48,10 +47,7 @@ static CGFloat const kPageControlBottomSpace = 15.0f;
 {
     _imageNames = imageNames;
     
-    
-    _contentView = [[UIView alloc] init];
-    _contentView.frame = (CGRect){CGPointZero, self.scrollView.contentSize};
-    [self.scrollView addSubview:_contentView];
+    [self addSubview:self.scrollView];
     
     if ([_imageNames count] > 1) {
         [self addSubview:self.pageControl];
@@ -133,8 +129,7 @@ static CGFloat const kPageControlBottomSpace = 15.0f;
         photo.url = [NSURL URLWithString:url]; // 图片路径
         
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"class == %@", [UIImageView class]];
-        NSArray *tempArray = [[NSArray alloc] init];
-        tempArray = [_contentView.subviews filteredArrayUsingPredicate:predicate];
+        NSArray *tempArray = [_scrollView.subviews filteredArrayUsingPredicate:predicate];
         
         photo.srcImageView = tempArray[i]; // 来源于哪个UIImageView
         [photos addObject:photo];
@@ -142,6 +137,7 @@ static CGFloat const kPageControlBottomSpace = 15.0f;
     
     // 2.显示相册
     MJPhotoBrowser *browser = [[MJPhotoBrowser alloc] initWithPhotos:photos currentPhotoIndex:tap.view.tag];
+    browser.delegate = self;
     [browser show];
 }
 
@@ -180,7 +176,7 @@ static CGFloat const kPageControlBottomSpace = 15.0f;
         [controller setContentMode:UIViewContentModeScaleAspectFill];
         controller.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         [controller.layer setMasksToBounds:YES];
-        [_contentView addSubview:controller];
+        [_scrollView addSubview:controller];
         
         controller.tag = page;
         [controller addGestureRecognizer:[[UITapGestureRecognizer alloc]
@@ -260,7 +256,6 @@ static CGFloat const kPageControlBottomSpace = 15.0f;
 {
     if (!_scrollView) {
         _scrollView = [[UIScrollView alloc] initWithFrame:self.bounds];
-        [self addSubview:_scrollView];
         _scrollView.contentSize = CGSizeMake(_scrollView.frame.size.width * _imageNames.count, _scrollView.frame.size.height);
         [_scrollView setBackgroundColor:[UIColor whiteColor]];
         _scrollView.pagingEnabled = YES;
@@ -287,6 +282,13 @@ static CGFloat const kPageControlBottomSpace = 15.0f;
         [_pageControl setCurrentPageIndicatorTintColor:[UIColor whiteColor]];
     }
     return _pageControl;
+}
+
+#pragma mark - <MJPhotoBrowserDelegate>
+- (void)photoBrowser:(MJPhotoBrowser *)photoBrowser didChangedToPageAtIndex:(NSUInteger)index
+{
+    NSLog(@"index==%zd", index);
+    [_scrollView setContentOffset:CGPointMake(index*_scrollView.frame.size.width, _scrollView.contentOffset.y) animated:NO];
 }
 
 @end
