@@ -20,14 +20,10 @@
 @interface ZKStickyHeaderView : UIView
 
 @property (nonatomic, weak) id <ZKStickyHeaderViewDelegate> delegate;
-@property (nonatomic, assign) BOOL isExpanded;
 
-+ (instancetype)headerViewWithImageNames:(NSArray <NSString *> *) imageNames initFrame:(CGRect)initFrame;
++ (instancetype)headerViewWithImageNames:(NSArray <NSString *> *)imageNames initFrame:(CGRect)initFrame;
 
 /** 在`scrollViewDidScroll`中实现 */
 - (void)updateFrameWhenScroll;
-
-/** 在`点击事件`中实现 */
-- (void)updateFrameWhenTap;
 
 @end

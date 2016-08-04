@@ -10,14 +10,16 @@
 #import "UIImageView+WebCache.h"
 #import "MJPhotoBrowser.h"
 
+#define  SCREEN_WIDTH    [UIScreen mainScreen].bounds.size.width
+
 @interface ZKStickyHeaderView() <UIScrollViewDelegate, MJPhotoBrowserDelegate>
 
 @property (nonatomic, strong) NSArray <NSString *> *imageNames;
 
 @property (nonatomic, assign) BOOL                 pageControlUsed;
-@property (nonatomic, strong) NSMutableArray       *viewControllers;
 @property (nonatomic, strong) UIScrollView         *scrollView;
 @property (nonatomic, strong) UIPageControl        *pageControl;
+@property (nonatomic, strong) NSTimer              *timer;
 
 @end
 
@@ -30,7 +32,7 @@ static CGFloat const kPageControlBottomSpace = 15.0f;
 {
     self = [super initWithFrame:frame];
     if (self) {
-        _isExpanded = NO;
+        [self addSubview:self.scrollView];
     }
     return self;
 }
@@ -42,24 +44,95 @@ static CGFloat const kPageControlBottomSpace = 15.0f;
     return headerView;
 }
 
+#pragma mark - Timer
+- (void)handleTimer
+{
+    if (_imageNames.count == 1) {
+        [self removeTimer];
+        return;
+    }
+    
+    CGFloat width = self.scrollView.frame.size.width;
+    
+    CGFloat offsetX = (self.pageControl.currentPage + 1) * width + width;
+    CGPoint offset = CGPointMake(offsetX, 0);
+    [self.scrollView setContentOffset:offset animated:YES];
+}
+
+- (void)addTimer
+{
+    _timer = [NSTimer scheduledTimerWithTimeInterval:2
+                                              target:self
+                                            selector:@selector(handleTimer)
+                                            userInfo:nil
+                                             repeats:YES];
+    [[NSRunLoop mainRunLoop] addTimer:_timer forMode:NSRunLoopCommonModes];
+}
+
+- (void)removeTimer
+{
+    [_timer invalidate];
+    self.timer = nil;
+}
+
 #pragma mark - Setter
 - (void)setImageNames:(NSArray<NSString *> *)imageNames
 {
     _imageNames = imageNames;
     
-    [self addSubview:self.scrollView];
-    
     if ([_imageNames count] > 1) {
         [self addSubview:self.pageControl];
     }
+    [self setupImageViews];
+    [self addTimer];
+}
+
+- (void)setupImageViews
+{
+    NSUInteger imageCount = _imageNames.count;
+    CGFloat width = self.scrollView.bounds.size.width;
     
-//    [self loadScrollViewWithPage:0];
-//    [self loadScrollViewWithPage:1];
+    for (NSInteger i = 0; i < _imageNames.count+2; i ++) {
+        UIImageView *imageView = [[UIImageView alloc]
+                                  initWithFrame:(CGRect){width*i, 0, self.scrollView.frame.size}];
+        [self.scrollView addSubview:imageView];
+        
+        imageView.userInteractionEnabled = YES;
+        [imageView setContentMode:UIViewContentModeScaleAspectFill];
+        imageView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        [imageView.layer setMasksToBounds:YES];
+        
+        [imageView addGestureRecognizer:[[UITapGestureRecognizer alloc]
+                                         initWithTarget:self action:@selector(handleTap:)]];
+        
+        
+        NSString *imageNameStr = nil;
+        
+        if (i == 0) {
+            imageNameStr = _imageNames[imageCount-1];
+            imageView.tag = imageCount-1;
+        }
+        else if (i == imageCount+1) {
+            imageNameStr = _imageNames[0];
+            imageView.tag = 0;
+        }
+        else {
+            imageNameStr = _imageNames[i-1];
+            imageView.tag = i-1;
+        }
+        
+        UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+        [spinner setCenter:CGPointMake(imageView.center.x, imageView.center.y)];
+        [spinner startAnimating];
+        [imageView addSubview:spinner];
+        
+        [imageView sd_setImageWithURL:[NSURL URLWithString:imageNameStr] placeholderImage:nil completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
+            [spinner removeFromSuperview];
+        }];
+    }
     
-    __weak typeof(self) weakSelf = self;
-    [_imageNames enumerateObjectsUsingBlock:^(NSString *string, NSUInteger idx, BOOL * _Nonnull stop) {
-        [weakSelf loadScrollViewWithPage:idx];
-    }];
+    self.scrollView.contentSize = CGSizeMake(width*(imageCount+2), HEADER_HEIGHT);
+    self.scrollView.contentOffset = CGPointMake(width, 0);
 }
 
 #pragma mark - Private Mehods
@@ -70,11 +143,6 @@ static CGFloat const kPageControlBottomSpace = 15.0f;
     
     float y = self.frame.size.height + _scrollView.frame.origin.y - kPageControlBottomSpace;
     _pageControl.frame = CGRectMake(0.0f, y, self.frame.size.width, kPageControlBottomSpace);
-}
-
-- (void)updateFrameWhenTap
-{
-    [self updateFrame:self.isExpanded ? [UIScreen mainScreen].bounds : HEADER_INIT_FRAME];
 }
 
 - (void)updateFrameWhenScroll
@@ -108,127 +176,66 @@ static CGFloat const kPageControlBottomSpace = 15.0f;
 #pragma mark - UITapGestureRecognizer
 - (void)handleTap:(UITapGestureRecognizer *)tap
 {
+    [self removeTimer];
+    
     if ([_delegate respondsToSelector:@selector(stickyHeaderViewDidTap:)]) {
         [_delegate stickyHeaderViewDidTap:self];
     }
     
     [self showPhotoBrowserWithTap:tap];
-    
-//    [self expand];
 }
 
 - (void)showPhotoBrowserWithTap:(UITapGestureRecognizer *)tap
 {
     NSInteger count = _imageNames.count;
-    // 1.封装图片数据
+    
     NSMutableArray <MJPhoto *> *photos = [NSMutableArray arrayWithCapacity:count];
     for (int i = 0; i<count; i++) {
-        // 替换为大尺寸图片 中:bmiddle  大:large
         NSString *url = _imageNames[i];
         MJPhoto *photo = [[MJPhoto alloc] init];
-        photo.url = [NSURL URLWithString:url]; // 图片路径
+        photo.url = [NSURL URLWithString:url];
         
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"class == %@", [UIImageView class]];
-        NSArray *tempArray = [_scrollView.subviews filteredArrayUsingPredicate:predicate];
+        NSArray *fillteredArray = [_scrollView.subviews filteredArrayUsingPredicate:predicate];
         
-        photo.srcImageView = tempArray[i]; // 来源于哪个UIImageView
+        NSMutableArray *mutableArray = fillteredArray.mutableCopy;
+        [mutableArray removeObjectAtIndex:mutableArray.count-1];
+        [mutableArray removeObjectAtIndex:0];
+        fillteredArray = mutableArray.copy;
+        
+        photo.srcImageView = fillteredArray[i];
         [photos addObject:photo];
     }
     
-    // 2.显示相册
     MJPhotoBrowser *browser = [[MJPhotoBrowser alloc] initWithPhotos:photos currentPhotoIndex:tap.view.tag];
     browser.delegate = self;
     [browser show];
 }
 
-- (void)expand
-{
-    [UIView animateWithDuration:0.35
-                     animations:^{
-                         
-                         self.isExpanded = !self.isExpanded;
-                         [self updateFrameWhenTap];
-                         
-                     } completion:^(BOOL finished){
-                         
-                         [[self superTableView] setScrollEnabled:!self.isExpanded];
-                         
-                     }];
-}
-
-#pragma mark - Load ScrollView Pages
-- (void)loadScrollViewWithPage:(NSInteger)page {
-    
-    if (page < 0 || page >= _imageNames.count) {
-        return;
-    }
-    
-    UIImageView *controller = self.viewControllers[page];
-    
-    if ((NSNull *)controller == [NSNull null]) {
-        
-        controller = [[UIImageView alloc] init];
-        controller.userInteractionEnabled = YES;
-        CGRect frame = _scrollView.frame;
-        frame.origin.x = frame.size.width * page;
-        frame.origin.y = 0;
-        controller.frame = frame;
-        [controller setContentMode:UIViewContentModeScaleAspectFill];
-        controller.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-        [controller.layer setMasksToBounds:YES];
-        [_scrollView addSubview:controller];
-        
-        controller.tag = page;
-        [controller addGestureRecognizer:[[UITapGestureRecognizer alloc]
-                                            initWithTarget:self action:@selector(handleTap:)]];
-        
-        UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-        [spinner setCenter:CGPointMake(controller.center.x, controller.center.y)];
-        [spinner startAnimating];
-        [controller addSubview:spinner];
-        
-        
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            
-            for (int i = 0; i < _imageNames.count; i++) {
-                
-                if (page == i) {
-                    
-                    [_viewControllers replaceObjectAtIndex:page withObject:controller];
-                    
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        
-//                        [controller setImage:[UIImage imageNamed:[NSString stringWithFormat:@"Resources.bundle/%@.png",_imageNames[i]]]];
-                        [controller sd_setImageWithURL:[NSURL URLWithString:_imageNames[i]] placeholderImage:nil];
-                        
-                        [spinner removeFromSuperview];
-                        
-                        return;
-                    });
-                }
-            }
-        });
-    }
-}
-
 #pragma mark - ScrollView Methods
-- (void)scrollViewDidScroll:(UIScrollView *)sender {
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     if (_pageControlUsed) {
         return;
     }
     
-    CGFloat pageWidth = _scrollView.frame.size.width;
-    int page = floor((_scrollView.contentOffset.x - pageWidth / 2) / pageWidth) + 1;
-    _pageControl.currentPage = page;
+    NSInteger imageCount = _imageNames.count;
     
-    [self loadScrollViewWithPage:page - 1];
-    [self loadScrollViewWithPage:page];
-    [self loadScrollViewWithPage:page + 1];
+    CGFloat offsetX = scrollView.contentOffset.x;
+    if (offsetX == 0) {
+        scrollView.contentOffset = CGPointMake(SCREEN_WIDTH*imageCount, 0);
+    }
+    if (offsetX == SCREEN_WIDTH*(imageCount+1)) {
+        scrollView.contentOffset = CGPointMake(SCREEN_WIDTH, 0);
+    }
+    
+    NSInteger currentPage = scrollView.contentOffset.x/SCREEN_WIDTH - 0.5;
+    self.pageControl.currentPage = currentPage;
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
     _pageControlUsed = YES;
+    [self removeTimer];
 }
 
 
@@ -237,26 +244,14 @@ static CGFloat const kPageControlBottomSpace = 15.0f;
               targetContentOffset:(inout CGPoint *)targetContentOffset
 {
     _pageControlUsed = NO;
+    [self addTimer];
 }
 
 #pragma mark - Lazy Loading
-- (NSMutableArray *)viewControllers
-{
-    if (!_viewControllers) {
-        NSMutableArray *controllers = [[NSMutableArray alloc] init];
-        for (unsigned i = 0; i < [_imageNames count]; i++) {
-            [controllers addObject:[NSNull null]];
-        }
-        _viewControllers = controllers;
-    }
-    return _viewControllers;
-}
-
 - (UIScrollView *)scrollView
 {
     if (!_scrollView) {
         _scrollView = [[UIScrollView alloc] initWithFrame:self.bounds];
-        _scrollView.contentSize = CGSizeMake(_scrollView.frame.size.width * _imageNames.count, _scrollView.frame.size.height);
         [_scrollView setBackgroundColor:[UIColor whiteColor]];
         _scrollView.pagingEnabled = YES;
         _scrollView.showsHorizontalScrollIndicator = NO;
@@ -288,7 +283,12 @@ static CGFloat const kPageControlBottomSpace = 15.0f;
 - (void)photoBrowser:(MJPhotoBrowser *)photoBrowser didChangedToPageAtIndex:(NSUInteger)index
 {
     NSLog(@"index==%zd", index);
-    [_scrollView setContentOffset:CGPointMake(index*_scrollView.frame.size.width, _scrollView.contentOffset.y) animated:NO];
+    [_scrollView setContentOffset:CGPointMake(index*_scrollView.frame.size.width+_scrollView.frame.size.width, _scrollView.contentOffset.y) animated:NO];
+}
+
+- (void)photoBrowserDidEndShowing:(MJPhotoBrowser *)photoBrowser
+{
+    [self addTimer];
 }
 
 @end

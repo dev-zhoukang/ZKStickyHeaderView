@@ -147,6 +147,9 @@ static CGFloat const kPhotoViewTagOffset = 1000.f;
 {
     [self.view removeFromSuperview];
     [self removeFromParentViewController];
+    if ([self.delegate respondsToSelector:@selector(photoBrowserDidEndShowing:)]) {
+        [self.delegate photoBrowserDidEndShowing:self];
+    }
 }
 
 - (void)photoViewImageFinishLoad:(MJPhotoView *)photoView

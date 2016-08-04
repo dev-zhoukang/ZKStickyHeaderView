@@ -13,6 +13,8 @@
 @optional
 /** 切换到某一页图片 */
 - (void)photoBrowser:(MJPhotoBrowser *)photoBrowser didChangedToPageAtIndex:(NSUInteger)index;
+/** 隐藏的时候回调 */
+- (void)photoBrowserDidEndShowing:(MJPhotoBrowser *)photoBrowser;
 @end
 
 @interface MJPhotoBrowser : UIViewController <UIScrollViewDelegate>
