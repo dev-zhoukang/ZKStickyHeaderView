@@ -9,6 +9,7 @@
 #import "ZKStickyHeaderView.h"
 #import "UIImageView+WebCache.h"
 #import "MJPhotoBrowser.h"
+#import "NSTimer+ZKAutoRelease.h"
 
 #define  SCREEN_WIDTH    [UIScreen mainScreen].bounds.size.width
 
@@ -61,11 +62,11 @@ static CGFloat const kPageControlBottomSpace = 15.0f;
 
 - (void)addTimer
 {
-    _timer = [NSTimer scheduledTimerWithTimeInterval:2
-                                              target:self
-                                            selector:@selector(handleTimer)
-                                            userInfo:nil
-                                             repeats:YES];
+    __weak typeof(self) weakSelf = self;
+    _timer = [NSTimer zk_scheduledTimerWithTimeInterval:2 block:^{
+        [weakSelf handleTimer];
+    } repeates:YES];
+    
     [[NSRunLoop mainRunLoop] addTimer:_timer forMode:NSRunLoopCommonModes];
 }
 

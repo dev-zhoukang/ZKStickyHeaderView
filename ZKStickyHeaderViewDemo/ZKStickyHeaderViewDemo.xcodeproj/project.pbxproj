@@ -16,7 +16,6 @@
 		5800E1841D3C7C4500D1F4D2 /* ZKMainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5800E1821D3C7C4500D1F4D2 /* ZKMainViewController.m */; };
 		5800E1851D3C7C4500D1F4D2 /* ZKMainViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5800E1831D3C7C4500D1F4D2 /* ZKMainViewController.xib */; };
 		5800E1881D3C81A300D1F4D2 /* ZKStickyHeaderView.m in Sources */ = {isa = PBXBuildFile; fileRef = 5800E1871D3C81A300D1F4D2 /* ZKStickyHeaderView.m */; };
-		5800E18C1D3C9B1C00D1F4D2 /* Resources.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 5800E18B1D3C9B1C00D1F4D2 /* Resources.bundle */; };
 		5879616F1D50819300DBDBDE /* MKAnnotationView+WebCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 5879614F1D50819300DBDBDE /* MKAnnotationView+WebCache.m */; };
 		587961701D50819300DBDBDE /* NSData+ImageContentType.m in Sources */ = {isa = PBXBuildFile; fileRef = 587961511D50819300DBDBDE /* NSData+ImageContentType.m */; };
 		587961711D50819300DBDBDE /* SDImageCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 587961531D50819300DBDBDE /* SDImageCache.m */; };
@@ -43,6 +42,7 @@
 		587961961D50878C00DBDBDE /* UIImageView+MJWebCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 5879618E1D50878C00DBDBDE /* UIImageView+MJWebCache.m */; };
 		5879619A1D5087A600DBDBDE /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 587961991D5087A600DBDBDE /* MBProgressHUD.m */; };
 		5879619D1D50882800DBDBDE /* SDWebImageManager+MJ.m in Sources */ = {isa = PBXBuildFile; fileRef = 5879619C1D50882800DBDBDE /* SDWebImageManager+MJ.m */; };
+		587961A61D533E0100DBDBDE /* NSTimer+ZKAutoRelease.m in Sources */ = {isa = PBXBuildFile; fileRef = 587961A51D533E0100DBDBDE /* NSTimer+ZKAutoRelease.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -81,7 +81,6 @@
 		5800E1831D3C7C4500D1F4D2 /* ZKMainViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ZKMainViewController.xib; sourceTree = "<group>"; };
 		5800E1861D3C81A300D1F4D2 /* ZKStickyHeaderView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZKStickyHeaderView.h; sourceTree = "<group>"; };
 		5800E1871D3C81A300D1F4D2 /* ZKStickyHeaderView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZKStickyHeaderView.m; sourceTree = "<group>"; };
-		5800E18B1D3C9B1C00D1F4D2 /* Resources.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Resources.bundle; sourceTree = "<group>"; };
 		5879614E1D50819300DBDBDE /* MKAnnotationView+WebCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "MKAnnotationView+WebCache.h"; sourceTree = "<group>"; };
 		5879614F1D50819300DBDBDE /* MKAnnotationView+WebCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "MKAnnotationView+WebCache.m"; sourceTree = "<group>"; };
 		587961501D50819300DBDBDE /* NSData+ImageContentType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+ImageContentType.h"; sourceTree = "<group>"; };
@@ -134,6 +133,8 @@
 		587961991D5087A600DBDBDE /* MBProgressHUD.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MBProgressHUD.m; sourceTree = "<group>"; };
 		5879619B1D50882800DBDBDE /* SDWebImageManager+MJ.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "SDWebImageManager+MJ.h"; sourceTree = "<group>"; };
 		5879619C1D50882800DBDBDE /* SDWebImageManager+MJ.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "SDWebImageManager+MJ.m"; sourceTree = "<group>"; };
+		587961A41D533E0100DBDBDE /* NSTimer+ZKAutoRelease.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSTimer+ZKAutoRelease.h"; sourceTree = "<group>"; };
+		587961A51D533E0100DBDBDE /* NSTimer+ZKAutoRelease.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSTimer+ZKAutoRelease.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -239,7 +240,7 @@
 			children = (
 				5800E1861D3C81A300D1F4D2 /* ZKStickyHeaderView.h */,
 				5800E1871D3C81A300D1F4D2 /* ZKStickyHeaderView.m */,
-				5800E18B1D3C9B1C00D1F4D2 /* Resources.bundle */,
+				587961A31D533DF700DBDBDE /* Supporting */,
 			);
 			path = ZKStickyHeaderView;
 			sourceTree = "<group>";
@@ -324,6 +325,15 @@
 				587961991D5087A600DBDBDE /* MBProgressHUD.m */,
 			);
 			path = MBProgressHUD;
+			sourceTree = "<group>";
+		};
+		587961A31D533DF700DBDBDE /* Supporting */ = {
+			isa = PBXGroup;
+			children = (
+				587961A41D533E0100DBDBDE /* NSTimer+ZKAutoRelease.h */,
+				587961A51D533E0100DBDBDE /* NSTimer+ZKAutoRelease.m */,
+			);
+			path = Supporting;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -433,7 +443,6 @@
 				5800E15C1D3C7B8300D1F4D2 /* LaunchScreen.storyboard in Resources */,
 				5800E1591D3C7B8300D1F4D2 /* Assets.xcassets in Resources */,
 				5800E1851D3C7C4500D1F4D2 /* ZKMainViewController.xib in Resources */,
-				5800E18C1D3C9B1C00D1F4D2 /* Resources.bundle in Resources */,
 				587961901D50878C00DBDBDE /* MJPhotoBrowser.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -478,6 +487,7 @@
 				587961741D50819300DBDBDE /* SDWebImageDownloader.m in Sources */,
 				5879617E1D50819300DBDBDE /* UIView+WebCacheOperation.m in Sources */,
 				587961781D50819300DBDBDE /* UIButton+WebCache.m in Sources */,
+				587961A61D533E0100DBDBDE /* NSTimer+ZKAutoRelease.m in Sources */,
 				5879616F1D50819300DBDBDE /* MKAnnotationView+WebCache.m in Sources */,
 				587961701D50819300DBDBDE /* NSData+ImageContentType.m in Sources */,
 				5800E1881D3C81A300D1F4D2 /* ZKStickyHeaderView.m in Sources */,
